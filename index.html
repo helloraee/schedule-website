@@ -637,28 +637,33 @@
             return { items };
         }
 
-        // Load schedule data (try GitHub first, fallback to mock data)
+        // Load schedule data (PRODUCTION: ONLY real data from GitHub)
         async function loadScheduleData() {
             scheduleData = {};
             
-            // Try to load real data from GitHub for several days
+            // Load real data from GitHub for a wider date range
             const today = new Date();
             const promises = [];
             
-            // Load today and surrounding days
-            for (let i = -3; i <= 7; i++) {
+            console.log('🔍 Loading schedules from GitHub...');
+            
+            // Load 60 days before and after current date
+            for (let i = -60; i <= 60; i++) {
                 const date = new Date(today);
                 date.setDate(today.getDate() + i);
                 const dateStr = formatDate(date);
                 
                 promises.push(
                     loadScheduleFromGitHub(dateStr).then(data => {
-                        if (data) {
+                        if (data && data.items && data.items.length > 0) {
                             scheduleData[dateStr] = {
                                 title: `Schedule for ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
                                 items: data.items
                             };
+                            console.log(`✅ Loaded schedule for ${dateStr}: ${data.items.length} tasks`);
                         }
+                    }).catch(error => {
+                        // Silently ignore missing files - this is expected
                     })
                 );
             }
@@ -666,13 +671,20 @@
             // Wait for all GitHub requests to complete
             await Promise.all(promises);
             
-            // If no real data found, use mock data for demonstration
-            if (Object.keys(scheduleData).length === 0) {
-                loadMockScheduleData();
+            const loadedCount = Object.keys(scheduleData).length;
+            console.log(`📊 Total schedules loaded: ${loadedCount}`);
+            
+            if (loadedCount === 0) {
+                console.log('⚠️ No real schedule data found. Check your GitHub files.');
             }
             
             updateStats();
             showView('today');
+        }
+
+        // Remove mock data function completely - no fallback
+        function loadMockScheduleData() {
+            console.log('🚫 Mock data disabled in production mode');
         }
 
         // Mock schedule data for demonstration
