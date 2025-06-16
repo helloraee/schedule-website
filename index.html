@@ -533,12 +533,12 @@
     </div>
 
     <script>
-        // Configuration - Update these for GitHub integration
+        // Configuration - ✅ ALREADY CONFIGURED FOR YOUR REPO
         const GITHUB_CONFIG = {
-            owner: 'helloraee',
-            repo: 'schedule-website',
+            owner: 'helloraee',      // ← Your GitHub username
+            repo: 'schedule-website', // ← Your repository name
             branch: 'main',
-            path: 'schedules'
+            path: 'schedules'        // ← Folder where .md files are stored
         };
 
         // State management
@@ -870,6 +870,37 @@
                 content += `
                     <div class="date-card ${isToday ? 'today' : ''} ${hasSchedule ? 'has-schedule' : ''}" onclick="showDaySchedule('${dateStr}')">
                         <h3>${date.toLocaleDateString('en-US', { weekday: 'short' })}</h3>
+                        <p>${date.getDate()}</p>
+                        <small>${hasSchedule ? `${hasSchedule.items.length} tasks` : 'no data'}</small>
+                    </div>
+                `;
+            }
+            
+            content += '</div>';
+            document.getElementById('content').innerHTML = content;
+        }
+
+        function showMonthView() {
+            document.getElementById('contentTitle').textContent = 'MONTH VIEW';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            let content = `<div style="margin-bottom: 16px; color: #ffaa00; font-size: 12px; text-transform: uppercase;">${monthName}</div>`;
+            content += '<div class="date-grid">';
+            
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = formatDate(date);
+                const isToday = dateStr === formatDate(new Date());
+                const hasSchedule = scheduleData[dateStr];
+                
+                content += `
+                    <div class="date-card ${isToday ? 'today' : ''} ${hasSchedule ? 'has-schedule' : ''}" onclick="showDaySchedule('${dateStr}')">
+                        <h3>${date.toLocaleDateString('en-US', { weekday: 'short' })}</h3>
                         <p>${day}</p>
                         <small>${hasSchedule ? `${hasSchedule.items.length} tasks` : 'no data'}</small>
                     </div>
@@ -988,6 +1019,3 @@
                     <div class="date-card ${isToday ? 'today' : ''} ${hasSchedule ? 'has-schedule' : ''}" onclick="showDaySchedule('${dateStr}')">
                         <h3>${date.toLocaleDateString('en-US', { weekday: 'short' })}</h3>
                         <p>${
-
-
-                
