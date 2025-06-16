@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAEE SCHEDULE TERMINAL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: #000000;
+            color: #00ff00;
+            line-height: 1.4;
+            overflow-x: hidden;
+            font-size: 13px;
+        }
+
+        .terminal-wrapper {
+            background: #000000;
+            min-height: 100vh;
+            padding: 8px;
+        }
+
+        .terminal-header {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .terminal-title {
+            color: #ffaa00;
+            font-weight: 600;
+        }
+
+        .terminal-status {
+            color: #00ffff;
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff00;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 8px;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-title {
+            color: #ffaa00;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+        }
+
+        .nav-item {
+            background: transparent;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: #1a1a1a;
+            border-color: #00ff00;
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background: #004400;
+            border-color: #00ff00;
+            color: #ffffff;
+        }
+
+        .main-content {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 16px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .content-title {
+            color: #ffaa00;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .breadcrumb {
+            color: #666;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .breadcrumb-item {
+            color: #00ffff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .breadcrumb-item:hover {
+            color: #ffffff;
+        }
+
+        .terminal-grid {
+            display: grid;
+            gap: 8px;
+        }
+
+        .terminal-block {
+            background: #111111;
+            border: 1px solid #333;
+            padding: 12px;
+            position: relative;
+        }
+
+        .terminal-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #00ff00;
+        }
+
+        .schedule-time {
+            color: #00ffff;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .schedule-description {
+            color: #ffffff;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .date-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+        }
+
+        .date-card {
+            background: #111111;
+            border: 1px solid #333;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            position: relative;
+        }
+
+        .date-card:hover {
+            border-color: #00ff00;
+            background: #1a1a1a;
+        }
+
+        .date-card.today {
+            border-color: #ffaa00;
+            background: #221100;
+        }
+
+        .date-card.today::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #ffaa00;
+        }
+
+        .date-card h3 {
+            color: #00ffff;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .date-card p {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .date-card small {
+            color: #666;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .date-card.has-schedule small {
+            color: #00ff00;
+        }
+
+        .no-schedule {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .debug-info {
+            background: #001100;
+            border: 1px solid #004400;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 10px;
+            color: #00ff00;
+        }
+
+        .debug-title {
+            color: #ffaa00;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .market-ticker {
+            background: #001122;
+            border: 1px solid #004488;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .ticker-content {
+            color: #00ffff;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            animation: ticker 30s linear infinite;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stat-box {
+            background: #001111;
+            border: 1px solid #004444;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            color: #00ffff;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .sidebar {
+                order: 2;
+                height: auto;
+            }
+
+            .sidebar-section {
+                margin-bottom: 16px;
+            }
+
+            .nav-item {
+                padding: 12px;
+                font-size: 12px;
+            }
+
+            .terminal-header {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .terminal-status {
+                justify-content: center;
+            }
+
+            .date-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+
+            .quick-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #333;
+            border-top: 2px solid #00ff00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 11px;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background: #111111;
+            color: #ffaa00;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: #ffffff;
+        }
+
+        .time-cell {
+            color: #00ffff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-wrapper">
+        <!-- Terminal Header -->
+        <div class="terminal-header">
+            <div class="terminal-title">RAEE SCHEDULE TERMINAL v2.1.0</div>
+            <div class="terminal-status">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span>LIVE</span>
+                </div>
+                <div class="status-item">
+                    <span id="currentTime"></span>
+                </div>
+                <div class="status-item">
+                    <span id="currentDate"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Ticker -->
+        <div class="market-ticker">
+            <div class="ticker-content">
+                SCHEDULE STATUS: ACTIVE • NEXT UPDATE: REALTIME • SYSTEM STATUS: OPERATIONAL • DATA FEED: GITHUB SYNC • TERMINAL ACCESS: AUTHORIZED
+            </div>
+        </div>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Navigation</div>
+                    <button class="nav-item active" onclick="showView('today')">Today Summary</button>
+                    <button class="nav-item" onclick="showView('week')">Week View</button>
+                    <button class="nav-item" onclick="showView('month')">Month View</button>
+                    <button class="nav-item" onclick="showView('year')">Year View</button>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Quick Stats</div>
+                    <div class="quick-stats">
+                        <div class="stat-box">
+                            <div class="stat-value" id="todayTasks">0</div>
+                            <div class="stat-label">Today Tasks</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="weekTasks">0</div>
+                            <div class="stat-label">Week Tasks</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="upcomingTasks">0</div>
+                            <div class="stat-label">Upcoming</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="totalTasks">0</div>
+                            <div class="stat-label">Total Tasks</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">System Info</div>
+                    <div style="font-size: 9px; color: #666; line-height: 1.4;">
+                        <div>Version: 2.1.0</div>
+                        <div>Build: 20250613</div>
+                        <div>Status: <span style="color: #00ff00;">ONLINE</span></div>
+                        <div>Uptime: <span id="uptime">00:00:00</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="content-header">
+                    <div>
+                        <div class="content-title" id="contentTitle">Loading Terminal...</div>
+                        <div class="breadcrumb" id="breadcrumb"></div>
+                    </div>
+                </div>
+
+                <div id="content">
+                    <div class="loading">Initializing Schedule Terminal</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Update these for GitHub integration
+        const GITHUB_CONFIG = {
+            owner: 'helloraee',
+            repo: 'schedule-website',
+            branch: 'main',
+            path: 'schedules'
+        };
+
+        // State management
+        let currentView = 'today';
+        let currentDate = new Date();
+        let scheduleData = {};
+        let breadcrumbPath = [];
+        let startTime = new Date();
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            updateClock();
+            setInterval(updateClock, 1000);
+            setInterval(updateUptime, 1000);
+        });
+
+        function initializeApp() {
+            loadScheduleData();
+            updateStats();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateStr = now.toLocaleDateString('en-US', { 
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit'
+            }).toUpperCase();
+            
+            document.getElementById('currentTime').textContent = timeStr;
+            document.getElementById('currentDate').textContent = dateStr;
+        }
+
+        function updateUptime() {
+            const now = new Date();
+            const uptime = new Date(now - startTime);
+            const hours = String(uptime.getUTCHours()).padStart(2, '0');
+            const minutes = String(uptime.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(uptime.getUTCSeconds()).padStart(2, '0');
+            document.getElementById('uptime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // GitHub integration
+        async function loadScheduleFromGitHub(date) {
+            const filename = `${date}.md`;
+            const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}/${filename}`;
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Schedule not found');
+                
+                const data = await response.json();
+                const markdown = atob(data.content);
+                
+                return parseMarkdownSchedule(markdown);
+            } catch (error) {
+                console.log(`No schedule found for ${date}`);
+                return null;
+            }
+        }
+
+        function parseMarkdownSchedule(markdown) {
+            const lines = markdown.split('\n');
+            const items = [];
+            
+            let inTable = false;
+            for (const line of lines) {
+                if (line.includes('|') && line.includes('Time') && line.includes('Description')) {
+                    inTable = true;
+                    continue;
+                }
+                if (line.includes('|') && line.includes('---')) {
+                    continue; // Skip table separator
+                }
+                if (inTable && line.includes('|')) {
+                    const parts = line.split('|').map(p => p.trim());
+                    if (parts.length >= 3 && parts[1] && parts[2] && !parts[1].includes('Time')) {
+                        items.push({
+                            time: parts[1],
+                            description: parts[2]
+                        });
+                    }
+                }
+                if (inTable && !line.includes('|') && line.trim() === '') {
+                    inTable = false;
+                }
+            }
+            
+            return { items };
+        }
+
+        // Load schedule data (try GitHub first, fallback to mock data)
+        async function loadScheduleData() {
+            scheduleData = {};
+            
+            // Try to load real data from GitHub for several days
+            const today = new Date();
+            const promises = [];
+            
+            // Load today and surrounding days
+            for (let i = -3; i <= 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateStr = formatDate(date);
+                
+                promises.push(
+                    loadScheduleFromGitHub(dateStr).then(data => {
+                        if (data) {
+                            scheduleData[dateStr] = {
+                                title: `Schedule for ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+                                items: data.items
+                            };
+                        }
+                    })
+                );
+            }
+            
+            // Wait for all GitHub requests to complete
+            await Promise.all(promises);
+            
+            // If no real data found, use mock data for demonstration
+            if (Object.keys(scheduleData).length === 0) {
+                loadMockScheduleData();
+            }
+            
+            updateStats();
+            showView('today');
+        }
+
+        // Mock schedule data for demonstration
+        function loadMockScheduleData() {
+            const today = new Date();
+            const todayStr = formatDate(today);
+            
+            // Today's schedule
+            scheduleData[todayStr] = {
+                title: "Today's Schedule",
+                items: [
+                    { time: '0900 - 1130', description: 'Team standup meeting and project review session' },
+                    { time: '1200 - 1300', description: 'Lunch break and personal time' },
+                    { time: '1400 - 1600', description: 'Client presentation preparation and rehearsal' },
+                    { time: '1630 - 1800', description: 'Code review and technical documentation' }
+                ]
+            };
+            
+            // Yesterday's schedule
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+            scheduleData[formatDate(yesterday)] = {
+                title: "Yesterday's Schedule",
+                items: [
+                    { time: '0800 - 0900', description: 'Morning workout and meditation routine' },
+                    { time: '1000 - 1200', description: 'Client calls and business development' },
+                    { time: '1400 - 1700', description: 'Development work and system testing' },
+                    { time: '1900 - 2000', description: 'Strategic planning for upcoming projects' }
+                ]
+            };
+            
+            // Tomorrow's schedule
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            scheduleData[formatDate(tomorrow)] = {
+                title: "Tomorrow's Schedule",
+                items: [
+                    { time: '0900 - 1000', description: 'Email triage and priority response handling' },
+                    { time: '1030 - 1200', description: 'Project planning and resource allocation' },
+                    { time: '1300 - 1500', description: 'Design review meeting with stakeholders' },
+                    { time: '1530 - 1700', description: 'Code implementation and testing cycles' }
+                ]
+            };
+            
+            // Add more sample days
+            for (let i = 2; i <= 10; i++) {
+                const futureDate = new Date(today);
+                futureDate.setDate(today.getDate() + i);
+                const dateStr = formatDate(futureDate);
+                
+                scheduleData[dateStr] = {
+                    title: `Schedule for ${futureDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+                    items: [
+                        { time: '0900 - 1200', description: `Strategic morning session - Advanced project work` },
+                        { time: '1300 - 1600', description: `Afternoon development - System architecture` },
+                        { time: '1630 - 1800', description: `End of day review and next-day preparation` }
+                    ]
+                };
+            }
+        }
+
+        function updateStats() {
+            const today = formatDate(new Date());
+            const todayData = scheduleData[today];
+            const todayTasks = todayData ? todayData.items.length : 0;
+            
+            // Calculate week tasks
+            let weekTasks = 0;
+            const startOfWeek = getStartOfWeek(new Date());
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                const dateStr = formatDate(date);
+                if (scheduleData[dateStr]) {
+                    weekTasks += scheduleData[dateStr].items.length;
+                }
+            }
+            
+            // Calculate upcoming tasks (next 7 days)
+            let upcomingTasks = 0;
+            const now = new Date();
+            for (let i = 1; i <= 7; i++) {
+                const futureDate = new Date(now);
+                futureDate.setDate(now.getDate() + i);
+                const dateStr = formatDate(futureDate);
+                if (scheduleData[dateStr]) {
+                    upcomingTasks += scheduleData[dateStr].items.length;
+                }
+            }
+            
+            const totalTasks = Object.values(scheduleData).reduce((sum, day) => sum + day.items.length, 0);
+            
+            document.getElementById('todayTasks').textContent = todayTasks;
+            document.getElementById('weekTasks').textContent = weekTasks;
+            document.getElementById('upcomingTasks').textContent = upcomingTasks;
+            document.getElementById('totalTasks').textContent = totalTasks;
+        }
+
+        // View management
+        function showView(view) {
+            currentView = view;
+            updateActiveButton(view);
+            updateBreadcrumb([view]);
+            
+            switch(view) {
+                case 'today':
+                    showTodayView();
+                    break;
+                case 'week':
+                    showWeekView();
+                    break;
+                case 'month':
+                    showMonthView();
+                    break;
+                case 'year':
+                    showYearView();
+                    break;
+            }
+        }
+
+        function updateActiveButton(activeView) {
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[onclick="showView('${activeView}')"]`).classList.add('active');
+        }
+
+        function updateBreadcrumb(path) {
+            breadcrumbPath = path;
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = path.map((item, index) => {
+                const isLast = index === path.length - 1;
+                return `<span class="breadcrumb-item ${isLast ? '' : 'clickable'}" 
+                        ${!isLast ? `onclick="navigateToBreadcrumb(${index})"` : ''}
+                        >${item.toUpperCase()}</span>
+                        ${!isLast ? ' > ' : ''}`;
+            }).join('');
+        }
+
+        function navigateToBreadcrumb(index) {
+            const targetPath = breadcrumbPath.slice(0, index + 1);
+            const targetView = targetPath[targetPath.length - 1];
+            showView(targetView);
+        }
+
+        // View implementations
+        function showTodayView() {
+            const today = formatDate(new Date());
+            const todayData = scheduleData[today];
+            
+            document.getElementById('contentTitle').textContent = 'TODAY SUMMARY';
+            
+            let content = `<div style="color: #666; margin-bottom: 16px; font-size: 10px; text-transform: uppercase;">
+                Current Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </div>`;
+            
+            if (todayData && todayData.items && todayData.items.length > 0) {
+                content += '<div class="terminal-grid">';
+                todayData.items.forEach(item => {
+                    content += `
+                        <div class="terminal-block">
+                            <div class="schedule-time">${item.time}</div>
+                            <div class="schedule-description">${item.description}</div>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            } else {
+                content += `<div class="no-schedule">No schedule data available for today (${today})</div>`;
+                content += `<div class="debug-info">
+                    <div class="debug-title">Debug Information</div>
+                    <div>Available dates: ${Object.keys(scheduleData).join(', ')}</div>
+                    <div>Looking for: ${today}</div>
+                    <div>GitHub repo: ${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}</div>
+                    <div>Expected file: schedules/${today}.md</div>
+                </div>`;
+            }
+            
+            document.getElementById('content').innerHTML = content;
+        }
+
+        function showWeekView() {
+            document.getElementById('contentTitle').textContent = 'WEEK VIEW';
+            
+            const startOfWeek = getStartOfWeek(new Date());
+            let content = '<div class="date-grid">';
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                const dateStr = formatDate(date);
+                const isToday = dateStr === formatDate(new Date());
+                const hasSchedule = scheduleData[dateStr];
+                
+                content += `
+                    <div class="date-card ${isToday ? 'today' : ''} ${hasSchedule ? 'has-schedule' : ''}" onclick="showDaySchedule('${dateStr}')">
+                        <h3>${date.toLocaleDateString('en-US', { weekday: 'short' })}</h3>
+                        <p>${day}</p>
+                        <small>${hasSchedule ? `${hasSchedule.items.length} tasks` : 'no data'}</small>
+                    </div>
+                `;
+            }
+            
+            content += '</div>';
+            document.getElementById('content').innerHTML = content;
+        }
+
+        function showYearView() {
+            document.getElementById('contentTitle').textContent = 'YEAR VIEW';
+            
+            const year = currentDate.getFullYear();
+            let content = `<div style="margin-bottom: 16px; color: #ffaa00; font-size: 12px; text-transform: uppercase;">${year}</div>`;
+            content += '<div class="date-grid">';
+            
+            for (let month = 0; month < 12; month++) {
+                const date = new Date(year, month, 1);
+                const monthName = date.toLocaleDateString('en-US', { month: 'long' });
+                const isCurrentMonth = month === new Date().getMonth();
+                
+                content += `
+                    <div class="date-card ${isCurrentMonth ? 'today' : ''}" onclick="showMonthSchedule(${month})">
+                        <h3>${monthName.substr(0, 3)}</h3>
+                        <p>${year}</p>
+                        <small>click to view</small>
+                    </div>
+                `;
+            }
+            
+            content += '</div>';
+            document.getElementById('content').innerHTML = content;
+        }
+
+        function showDaySchedule(dateStr) {
+            const date = new Date(dateStr);
+            const dayData = scheduleData[dateStr];
+            const formattedDate = date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            document.getElementById('contentTitle').textContent = 'DAY SCHEDULE';
+            
+            let content = `<div style="margin-bottom: 16px; color: #ffaa00; font-size: 12px; text-transform: uppercase;">${formattedDate}</div>`;
+            
+            if (dayData && dayData.items.length > 0) {
+                content += '<div class="terminal-grid">';
+                dayData.items.forEach(item => {
+                    content += `
+                        <div class="terminal-block">
+                            <div class="schedule-time">${item.time}</div>
+                            <div class="schedule-description">${item.description}</div>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            } else {
+                content += '<div class="no-schedule">No schedule data available for this day</div>';
+            }
+            
+            updateBreadcrumb([currentView, formattedDate]);
+            document.getElementById('content').innerHTML = content;
+        }
+
+        function showMonthSchedule(monthIndex) {
+            currentDate.setMonth(monthIndex);
+            showMonthView();
+        }
+
+        // Utility functions
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day;
+            return new Date(d.setDate(diff));
+        }
+    </script>
+</body>
+</html>date.getDate()}</p>
+                        <small>${hasSchedule ? `${hasSchedule.items.length} tasks` : 'no data'}</small>
+                    </div>
+                `;
+            }
+            
+            content += '</div>';
+            document.getElementById('content').innerHTML = content;
+        }
+
+        function showMonthView() {
+            document.getElementById('contentTitle').textContent = 'MONTH VIEW';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            let content = `<div style="margin-bottom: 16px; color: #ffaa00; font-size: 12px; text-transform: uppercase;">${monthName}</div>`;
+            content += '<div class="date-grid">';
+            
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = formatDate(date);
+                const isToday = dateStr === formatDate(new Date());
+                const hasSchedule = scheduleData[dateStr];
+                
+                content += `
+                    <div class="date-card ${isToday ? 'today' : ''} ${hasSchedule ? 'has-schedule' : ''}" onclick="showDaySchedule('${dateStr}')">
+                        <h3>${date.toLocaleDateString('en-US', { weekday: 'short' })}</h3>
+                        <p>${
